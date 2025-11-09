@@ -1,0 +1,47 @@
+name: Matrix Build with Artifacts
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build (node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14, 16, 18]   # three variants -> three parallel jobs
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: matrix-e2f692d
+        run: |
+          echo "matrix job identifier present"
+          echo "Running build for Node.js ${{ matrix.node-version }}"
+
+      - name: Install deps (no-op for demo)
+        run: |
+          node -v
+          npm --version || true
+
+      - name: Generate build artifact
+        run: |
+          ARTFILE=build-e2f692d-v${{ matrix.node-version }}.txt
+          echo "Build artifact for Node.js ${{ matrix.node-version }}" > "${ARTFILE}"
+          echo "Job run id: $GITHUB_RUN_ID" >> "${ARTFILE}"
+          echo "Matrix node-version: ${{ matrix.node-version }}" >> "${ARTFILE}"
+          echo "Repo: $GITHUB_REPOSITORY" >> "${ARTFILE}"
+          ls -l "${ARTFILE}"
+        shell: bash
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-e2f692d-v${{ matrix.node-version }}
+          path: build-e2f692d-v${{ matrix.node-version }}.txt
